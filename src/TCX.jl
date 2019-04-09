@@ -4,16 +4,16 @@ using EzXML, Dates, DataFrames
 export parse_tcx_file, activity_Type, activity_Id, start_Time, distance, duration, avg_HeartRateBpm, get_DataFrame
 
 struct TrackPoint
-    Time::String
-    Latitude::String
-    Longtitude::String
-    HeartRateBpm::String
-    AltitueMeter::String
-    DistanceMeter::String
+    Time::DateTime
+    Latitude::Float64
+    Longtitude::Float64
+    HeartRateBpm::Int32
+    AltitueMeter::Float64
+    DistanceMeter::Float64
 end
 
 struct TCXRecord
-    Id::String
+    Id::DateTime
     Name::String
     ActivityType::String
     TrackPoints::Array{TrackPoint}
@@ -29,7 +29,7 @@ function parse_tcx_file(file::String)
     catch e
        if isa(e, XMLError)
            # Not a valid XML document
-           println("An invalid XML document that fails EzXML::readxml().")
+           println("Invalid XML document: ", file_path)
            return 400, nothing
        else
            return 500, nothing
@@ -39,14 +39,14 @@ function parse_tcx_file(file::String)
     root_element = root(xmldoc)
     # Check if TCX
     if nodename(root_element) != "TrainingCenterDatabase"
-        println("An invalid TCX document that has wrong root node name.")
+        println("Invalid TCX document: ", file_path)
         return 400, nothing
     end
 
     # Type - "/*/*[1]/*[1]/@Sport"
     aType = nodecontent(findfirst("/*/*[1]/*[1]/@Sport", xmldoc))  
     # Id - "/*/*[1]/*/*[1]"
-    aId = nodecontent(findfirst("/*/*[1]/*/*[1]", xmldoc))
+    aId = DateTime(nodecontent(findfirst("/*/*[1]/*/*[1]", xmldoc)),"yyyy-mm-ddTHH:MM:SS.sssZ")
     # Name = "/*/*[1]/*[1]/*[3]"
     aName = nodecontent(findfirst("/*/*[1]/*/*[2]", xmldoc))
     # Lap - "/*/*[1]/*/*[2]"
@@ -57,12 +57,12 @@ function parse_tcx_file(file::String)
     tp_Points = findall("/*/*[1]/*/*[2]/*[9]/*", xmldoc)
     aTrackPoints = Array{TrackPoint, size(tp_Points, 1)}[]
     for tp in tp_Points
-        tp_time = nodecontent(findfirst("./*[1]", tp))
-        tp_lat = nodecontent(findfirst("./*[2]/*[1]", tp))
-        tp_lont = nodecontent(findfirst("./*[2]/*[2]", tp))
-        tp_bpm = nodecontent(findfirst("./*[5]/*[1]", tp))
-        tp_dist = nodecontent(findfirst("./*[4]", tp))
-        tp_alt = nodecontent(findfirst("./*[3]", tp))
+        tp_time = DateTime(nodecontent(findfirst("./*[1]", tp)), "yyyy-mm-ddTHH:MM:SS.sssZ")
+        tp_lat = parse(Float64, nodecontent(findfirst("./*[2]/*[1]", tp)))
+        tp_lont = parse(Float64, nodecontent(findfirst("./*[2]/*[2]", tp)))
+        tp_bpm = parse(Int32, nodecontent(findfirst("./*[5]/*[1]", tp)))
+        tp_dist = parse(Float64, nodecontent(findfirst("./*[4]", tp)))
+        tp_alt = parse(Float64, nodecontent(findfirst("./*[3]", tp)))
 
         aTrackPoints = vcat(aTrackPoints, TrackPoint(tp_time, tp_lat, tp_lont, tp_bpm, tp_dist, tp_alt))
     end

@@ -12,7 +12,8 @@ julia> using Pkg; Pkg.add("TCX");
 ```julia
 using TCX
 
-tcx = TCX.read("my_marathon.tcx")
+err, tcx = TCX.parse_tcx_file("my_marathon.tcx")
+# TODO
 println(tcx.distance)
 println(tcx.duration)
 println(tcx.average_speed)
@@ -23,8 +24,8 @@ println(tcx.average_pace)
 ### Load multiple TCX for analysis
 ```julia
 using TCX, DataFrames
-df = TCX.read("/my_running_logs/")
-println(size(df))
+err, tcx = TCX.parse_tcx_file("/my_running_logs/")
+get_DataFrame(tcx)
 
 ```
 # License

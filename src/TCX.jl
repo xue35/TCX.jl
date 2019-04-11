@@ -1,5 +1,5 @@
 module TCX
-using EzXML, Dates, DataFrames
+using EzXML, Dates, DataFrames, Geodesy
 
 export parse_tcx_file, activity_Type, activity_Id, start_Time, distance, duration, avg_HeartRateBpm, get_DataFrame
 

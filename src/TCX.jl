@@ -19,8 +19,7 @@ struct TCXRecord
     TrackPoints::Array{TrackPoint}
 end
 
-function parse_tcx_file(file::String)
-    file_path = abspath(file)
+function parse_tcx_file(file_path::String)
     if isfile(file_path) == false
         return 404, nothing
     end

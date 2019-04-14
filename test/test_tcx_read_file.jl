@@ -34,5 +34,10 @@ tcx_centrypark_run_file2=joinpath(@__DIR__, tcx_centrypark_run_file)
         err, data =  TCX.parse_tcx_file(tcx_centrypark_run_file2)
         @test (err == 200) & (getAveragePace(data) > 0 )
     end
+
+    @testset "CASE: Test to get TCX duration." begin
+        err, data =  TCX.parse_tcx_file(tcx_centrypark_run_file2)
+        @test (err == 200) & (getDuration(data) > 0 )
+    end
 end
 

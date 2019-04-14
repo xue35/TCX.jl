@@ -16,18 +16,19 @@ using TCX
 
 err, tcx = TCX.parse_tcx_file("my_marathon.tcx")
 # TODO
-println(tcx.distance)
-println(tcx.duration)
-println(tcx.average_speed)
-println(tcx.average_pace)
+println(getDistance(tcx)) # Static distance record in TCX activity header.
+println(getDistance2(tcx)) # Distance calculated out of tackpoints using Geodesty
+println(getDuration(tcx))
+println(getAverageSpeed(tcx))
+println(getAveragePace(tcx))
 
 ```
 
 ### Load multiple TCX for analysis
 ```julia
 using TCX, DataFrames
-err, tcx = TCX.parse_tcx_file("/my_running_logs/")
-get_DataFrame(tcx)
+err, tcxArray = TCX.parse_tcx_dir("/my_running_logs/")
+get_DataFrame(tcxArray)
 
 ```
 # License

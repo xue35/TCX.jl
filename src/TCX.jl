@@ -1,7 +1,8 @@
 module TCX
 using EzXML, Dates, DataFrames, Geodesy
+import Base.show
 
-export parse_tcx_file, activity_Type, activity_Id, start_Time, distance, duration, avg_HeartRateBpm, get_DataFrame
+export parse_tcx_file, getActivityType, getDataFrame, getDistance, getDistance2, getDuration, getAverageSpeed, getAveragePace
 
 struct TrackPoint
     Time::DateTime
@@ -16,6 +17,9 @@ struct TCXRecord
     Id::DateTime
     Name::String
     ActivityType::String
+    DistanceStatic::Float64
+    DurationStatic::Float64
+    HeartRate::Int32
     TrackPoints::Array{TrackPoint}
 end
 
@@ -50,8 +54,11 @@ function parse_tcx_file(file_path::String)
     aName = nodecontent(findfirst("/*/*[1]/*/*[2]", xmldoc))
     # Lap - "/*/*[1]/*/*[2]"
     # TotalSeconds - "/*/*[1]/*/*[2]/*[1]"
+    aTime = parse(Float64, nodecontent(findfirst("/*/*[1]/*/*[2]/*[1]", xmldoc)))
+    aDistance = parse(Float64, nodecontent(findfirst("/*/*[1]/*/*[2]/*[2]", xmldoc)))
     # DistanceMeters - "/*/*[1]/*/*[2]/*[2]"
     # AverageHeartRateBpm - "/*/*[1]/*/*[2]/*[5]/*[1]"
+    aHeartRateBpm = parse(Int32, nodecontent(findfirst("/*/*[1]/*/*[2]/*[5]/*[1]", xmldoc)))
     # TrackPoints - "/*/*[1]/*/*[2]/*[9]/*"
     tp_Points = findall("/*/*[1]/*/*[2]/*[9]/*", xmldoc)
     aTrackPoints = Array{TrackPoint, size(tp_Points, 1)}[]
@@ -66,16 +73,33 @@ function parse_tcx_file(file_path::String)
         aTrackPoints = vcat(aTrackPoints, TrackPoint(tp_time, tp_lat, tp_lont, tp_bpm, tp_dist, tp_alt))
     end
 
-    return 200, TCXRecord(aId, aName, aType, aTrackPoints)
+    return 200, TCXRecord(aId, aName, aType, aDistance, aTime, aHeartRateBpm, aTrackPoints)
 end
 
-function activity_Type(record)
+function getActivityType(record::TCXRecord)
     return record.ActivityType
 end
 
-function get_DataFrame(record)
+function getDataFrame(record::TCXRecord)
     return DataFrame(record.TrackPoints)
 end
 
-end # module:w
+function getDistance(record::TCXRecord)
+    return record.DistanceStatic
+end
+
+function getDistance2(record::TCXRecord)
+    # Calculate distance from track points using Geodesty
+    return 0
+end
+function getAverageSpeed(record::TCXRecord)
+    return (record.DistanceStatic /1000) / (record.DurationStatic / 3600)  # km/h
+end
+
+function getAveragePace(record::TCXRecord)
+    return (record.DurationStatic / 60) / (record.DistanceStatic / 1000) # min/km
+end
+
+Base.show(io::IO, tcx::TCXRecord) = print(io, "$(tcx.ActivityType) $(tcx.DistanceStatic/1000) km at $(tcx.Id) for $(tcx.DurationStatic) seconds.")
+end #module_end
 

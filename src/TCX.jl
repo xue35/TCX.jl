@@ -100,6 +100,10 @@ function getAveragePace(record::TCXRecord)
     return (record.DurationStatic / 60) / (record.DistanceStatic / 1000) # min/km
 end
 
+function getDuration(record::TCXRecord)
+    return record.DurationStatic
+end
+
 Base.show(io::IO, tcx::TCXRecord) = print(io, "$(tcx.ActivityType) $(tcx.DistanceStatic/1000) km at $(tcx.Id) for $(tcx.DurationStatic) seconds.")
 end #module_end
 

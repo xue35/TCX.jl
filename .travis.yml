@@ -12,6 +12,3 @@ notification:
 script:
   - julia --project --check-bounds=yes -e 'using Pkg; Pkg.build("TCX"); Pkg.test("TCX", coverage=true)'
 
-after_success:
-- julia -e 'using Pkg; cd(Pkg.dir("TCX")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
-

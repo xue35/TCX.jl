@@ -15,7 +15,6 @@ julia> using Pkg; Pkg.add("TCX");
 using TCX
 
 err, tcx = TCX.parse_tcx_file("my_marathon.tcx")
-# TODO
 println(getDistance(tcx)) # Static distance record in TCX activity header.
 println(getDistance2(tcx)) # Distance calculated out of tackpoints using Geodesty
 println(getDuration(tcx))

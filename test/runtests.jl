@@ -1,4 +1,3 @@
-using DataFrames
 using TCX
 
 tcx_sample_file="centry_park_run.tcx"

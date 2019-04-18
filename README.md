@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/xue35/TCX.jl.svg?branch=master)](https://travis-ci.com/xue35/TCX.jl)
+[![codecov.io](http://codecov.io/github/xue35/TCX.jl/coverage.svg?branch=master)](http://codecov.io/github/xue35/TCX.jl?branch=master)
 
 # TCX.jl
 TCX.jl intends to provide an list of Julia modules to access Training Center XML(TCX) files. This project is inspired by [vkurup/python-tcxparser](https://github.com/vkurup/python-tcxparser).

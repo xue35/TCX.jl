@@ -30,6 +30,11 @@ tcx_centrypark_run_file2=joinpath(@__DIR__, tcx_centrypark_run_file)
         @test (err == 200) & (getDistance(data) == 27020)
     end
 
+    @testset "CASE: Test a TCX running distance from Geodesy." begin
+        err, data =  TCX.parse_tcx_file(tcx_centrypark_run_file2)
+        @test (err == 200) & (getDistance2(data) > 0)
+    end
+
     @testset "CASE: Test a TCX static average pace." begin
         err, data =  TCX.parse_tcx_file(tcx_centrypark_run_file2)
         @test (err == 200) & (getAveragePace(data) > 0 )

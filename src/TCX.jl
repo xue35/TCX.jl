@@ -68,8 +68,8 @@ function parse_tcx_file(file::String)
         tp_lat = parse(Float64, nodecontent(findfirst("./*[2]/*[1]", tp)))
         tp_lont = parse(Float64, nodecontent(findfirst("./*[2]/*[2]", tp)))
         tp_bpm = parse(Int32, nodecontent(findfirst("./*[5]/*[1]", tp)))
-        tp_dist = parse(Float64, nodecontent(findfirst("./*[4]", tp)))
-        tp_alt = parse(Float64, nodecontent(findfirst("./*[3]", tp)))
+        tp_dist = parse(Float64, nodecontent(findfirst("./*[3]", tp)))
+        tp_alt = parse(Float64, nodecontent(findfirst("./*[4]", tp)))
 
         aTrackPoints = vcat(aTrackPoints, TrackPoint(tp_time, tp_lat, tp_lont, tp_bpm, tp_dist, tp_alt))
     end
@@ -121,9 +121,20 @@ function getDistance(record::TCXRecord)
 end
 
 function getDistance2(record::TCXRecord)
-    # Calculate distance from track points using Geodesty
-    return 0
+    total_distance = 0
+    df = getDataFrame(record)
+    num_of_rows = size(df, 1)
+    for i in 1:num_of_rows
+        if i < num_of_rows
+            total_distance += distance(
+                                       LLA(df[i, :Latitude], df[i, :Longtitude], df[i, :AltitueMeter]),
+                                       LLA(df[i+1, :Latitude], df[i+1, :Longtitude], df[i+1, :AltitueMeter])
+               )
+        end
+    end
+    return total_distance
 end
+
 function getAverageSpeed(record::TCXRecord)
     return (record.DistanceStatic /1000) / (record.DurationStatic / 3600)  # km/h
 end

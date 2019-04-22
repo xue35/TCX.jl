@@ -6,6 +6,8 @@ os:
   - linux
   - osx
 
+codecov: true
+
 notification:
   email: false
 

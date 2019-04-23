@@ -7,7 +7,6 @@ os:
   - osx
 
 codecov: true
-coveralls: true
 
 notification:
   email: false
@@ -17,4 +16,3 @@ script:
 
 after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
-  - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'

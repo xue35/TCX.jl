@@ -31,7 +31,7 @@ function parse_tcx_file(file::String)
 
     xmldoc = try readxml(file_path)
     catch e
-       if isa(e, XMLError)
+       if isa(e, EzXML.XMLError)
            # Not a valid XML document
            @warn "Invalid XML document: $file_path"
            return 400, nothing
@@ -65,7 +65,12 @@ function parse_tcx_file(file::String)
     aTrackPoints = Array{TrackPoint, size(tp_Points, 1)}[]
     for tp in tp_Points
         tp_time = DateTime(nodecontent(findfirst("./*[1]", tp)), "yyyy-mm-ddTHH:MM:SS.sssZ")
-        tp_lat = parse(Float64, nodecontent(findfirst("./*[2]/*[1]", tp)))
+        xlat = findfirst("./*[2]/*[1]", tp)
+        if xlat !== nothing
+            tp_lat = parse(Float64, nodecontent(xlat))
+        else
+            continue
+        end
         tp_lont = parse(Float64, nodecontent(findfirst("./*[2]/*[2]", tp)))
         tp_bpm = parse(Int32, nodecontent(findfirst("./*[5]/*[1]", tp)))
         tp_dist = parse(Float64, nodecontent(findfirst("./*[3]", tp)))

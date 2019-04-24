@@ -1,11 +1,9 @@
 name = "TCX"
 uuid = "3b8c1752-506b-11e9-3f9b-8db86abc7c68"
 authors = ["xue35 "]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
-Cairo = "159f3aea-2a34-519c-b102-8c37f9878175"
-Coverage = "a2441757-f6aa-5fb2-8edb-039e3f45d037"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 EzXML = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"

@@ -23,6 +23,11 @@ struct TCXRecord
     TrackPoints::Array{TrackPoint}
 end
 
+DictDateFormats = Dict(
+    :24 => "yyyy-mm-ddTHH:MM:SS.sssZ",
+    :20 => "yyyy-mm-ddTHH:MM:SSZ", 
+    )
+
 function parse_tcx_file(file::String)
     file_path = abspath(file)
     if isfile(file_path) == false
@@ -50,7 +55,8 @@ function parse_tcx_file(file::String)
     # Type - "/*/*[1]/*[1]/@Sport"
     aType = nodecontent(findfirst("/*/*[1]/*[1]/@Sport", xmldoc))  
     # Id - "/*/*[1]/*/*[1]"
-    aId = DateTime(nodecontent(findfirst("/*/*[1]/*/*[1]", xmldoc)),"yyyy-mm-ddTHH:MM:SS.sssZ")
+    xid =nodecontent(findfirst("/*/*[1]/*/*[1]", xmldoc)) 
+    aId = DateTime(xid,DictDateFormats[length(xid)])
     # Name = "/*/*[1]/*[1]/*[3]"
     aName = nodecontent(findfirst("/*/*[1]/*/*[2]", xmldoc))
     # Lap - "/*/*[1]/*/*[2]"
@@ -59,12 +65,18 @@ function parse_tcx_file(file::String)
     aDistance = parse(Float64, nodecontent(findfirst("/*/*[1]/*/*[2]/*[2]", xmldoc)))
     # DistanceMeters - "/*/*[1]/*/*[2]/*[2]"
     # AverageHeartRateBpm - "/*/*[1]/*/*[2]/*[5]/*[1]"
-    aHeartRateBpm = parse(Int32, nodecontent(findfirst("/*/*[1]/*/*[2]/*[5]/*[1]", xmldoc)))
+    xbpm = findfirst("/*/*[1]/*/*[2]/*[5]/*[1]", xmldoc) 
+    if xbpm === nothing
+        aHeartRateBpm = 0
+    else
+        aHeartRateBpm = parse(Int32, nodecontent(xbpm))
+    end
     # TrackPoints - "/*/*[1]/*/*[2]/*[9]/*"
     tp_Points = findall("/*/*[1]/*/*[2]/*[9]/*", xmldoc)   
     aTrackPoints = Array{TrackPoint, size(tp_Points, 1)}[]
     for tp in tp_Points
-        tp_time = DateTime(nodecontent(findfirst("./*[1]", tp)), "yyyy-mm-ddTHH:MM:SS.sssZ")
+        xtime = nodecontent(findfirst("./*[1]", tp))
+        tp_time = DateTime(xtime, DictDateFormats[length(xtime)])
         xlat = findfirst("./*[2]/*[1]", tp)
         if xlat !== nothing
             tp_lat = parse(Float64, nodecontent(xlat))
@@ -72,7 +84,12 @@ function parse_tcx_file(file::String)
             continue
         end
         tp_lont = parse(Float64, nodecontent(findfirst("./*[2]/*[2]", tp)))
-        tp_bpm = parse(Int32, nodecontent(findfirst("./*[5]/*[1]", tp)))
+        xbpm = findfirst("./*[5]/*[1]", tp)
+        if xbpm !== nothing
+            tp_bpm = parse(Int32, nodecontent(findfirst("./*[5]/*[1]", tp)))
+        else
+            tp_bm = 0
+        end
         tp_dist = parse(Float64, nodecontent(findfirst("./*[3]", tp)))
         tp_alt = parse(Float64, nodecontent(findfirst("./*[4]", tp)))
 

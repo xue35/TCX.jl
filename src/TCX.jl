@@ -23,17 +23,11 @@ struct TCXRecord
     TrackPoints::Array{TrackPoint}
 end
 
-DictDateFormats = Dict(
-    :24 => "yyyy-mm-ddTHH:MM:SS.sssZ",
-    :20 => "yyyy-mm-ddTHH:MM:SSZ", 
-    )
-
 function parse_tcx_file(file::String)
     file_path = abspath(file)
     if isfile(file_path) == false
         return 404, nothing
     end
-
     xmldoc = try readxml(file_path)
     catch e
        if isa(e, EzXML.XMLError)
@@ -55,8 +49,9 @@ function parse_tcx_file(file::String)
     # Type - "/*/*[1]/*[1]/@Sport"
     aType = nodecontent(findfirst("/*/*[1]/*[1]/@Sport", xmldoc))  
     # Id - "/*/*[1]/*/*[1]"
-    xid =nodecontent(findfirst("/*/*[1]/*/*[1]", xmldoc)) 
-    aId = DateTime(xid,DictDateFormats[length(xid)])
+    xid = nodecontent(findfirst("/*/*[1]/*/*[1]", xmldoc))
+
+    aId = convertToDateTime(xid)
     # Name = "/*/*[1]/*[1]/*[3]"
     aName = nodecontent(findfirst("/*/*[1]/*/*[2]", xmldoc))
     # Lap - "/*/*[1]/*/*[2]"
@@ -76,7 +71,7 @@ function parse_tcx_file(file::String)
     aTrackPoints = Array{TrackPoint, size(tp_Points, 1)}[]
     for tp in tp_Points
         xtime = nodecontent(findfirst("./*[1]", tp))
-        tp_time = DateTime(xtime, DictDateFormats[length(xtime)])
+        tp_time = convertToDateTime(xtime)
         xlat = findfirst("./*[2]/*[1]", tp)
         if xlat !== nothing
             tp_lat = parse(Float64, nodecontent(xlat))
@@ -169,6 +164,30 @@ function getDuration(record::TCXRecord)
     return record.DurationStatic
 end
 
+#=
+= Converts a datetime string into the proper datetime based on string length.
+=
+= Will assume that an ArgumentError is due to
+= https://github.com/JuliaLang/julia/issues/23049 and will attempt to work
+= around this.
+=#
+function convertToDateTime(datestr::String)
+    DictDateFormats = Dict(
+        :24 => "yyyy-mm-ddTHH:MM:SS.sssZ",
+        :20 => "yyyy-mm-ddTHH:MM:SSZ",
+    )
+    try
+        return DateTime(datestr, DictDateFormats[length(datestr)])
+    catch e
+        if isa(e, ArgumentError)
+            return DateTime(
+                datestr[1:end-1], DictDateFormats[length(datestr)][1:end-1]
+            )
+        else
+            throw(e)
+        end
+    end
+end
+
 Base.show(io::IO, tcx::TCXRecord) = print(io, "$(tcx.ActivityType) $(tcx.DistanceStatic/1000) km at $(tcx.Id) for $(tcx.DurationStatic) seconds.")
 end #module_end
-

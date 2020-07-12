@@ -2,7 +2,7 @@ using Test
 
 @testset "TESTSETS: Test read TCX dir" begin
     @testset "CASE: Test dir with NO TCX file" begin
-	err, _ =  TCX.parse_tcx_dir(tempdir())
+	      err, _ =  TCX.parse_tcx_dir(tempdir())
         @test err == 404
     end
 
@@ -17,7 +17,7 @@ using Test
     end
     @testset "CASE: Test DataFrame after process dir" begin
         err, ta =  TCX.parse_tcx_dir(".")
-        @test (err == 200) & (size(getDataFrame(ta), 1) == 9273)
+        @test (err == 200) & (size(getDataFrame(ta), 1) == 10087)
     end
 end
 

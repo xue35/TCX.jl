@@ -176,21 +176,16 @@ end
 = https://github.com/JuliaLang/julia/issues/23049 and will attempt to work
 = around this.
 =#
-function convertToDateTime(datestr::String)
-    DictDateFormats = Dict(
-        :24 => "yyyy-mm-ddTHH:MM:SS.sssZ",
-        :20 => "yyyy-mm-ddTHH:MM:SSZ",
-    )
-    try
-        return DateTime(datestr, DictDateFormats[length(datestr)])
-    catch e
-        if isa(e, ArgumentError)
-            return DateTime(
-                datestr[1:end-1], DictDateFormats[length(datestr)][1:end-1]
-            )
-        else
-            throw(e)
-        end
+function convertToDateTime(datestr::String)::DateTime
+    m = match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z?|\.\d{1,3}Z?)", datestr)
+    format_prefix = "yyyy-mm-ddTHH:MM:SS"
+    if m === nothing
+        msg = "'$(datestr)' is improperly formatted. Must be in the form "
+        msg = msg * "'$(format_prefix)Z' or '$(format_prefix).sssZ'"
+        throw(ArgumentError(msg))
+    else
+        suffix = replace(m.captures[1], r"\d" => "s")
+        return DateTime(m.match, format_prefix * suffix)
     end
 end
 

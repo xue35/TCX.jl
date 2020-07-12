@@ -16,4 +16,17 @@ using Test, Dates
             @test TCX.convertToDateTime(valid_datestr * "Z") == the_last_year
         end
     end
+
+    @testset "CASE: Test parsing an improperly formatted string" begin
+        invalid_datestr = "01-01-2020"
+        try
+            TCX.convertToDateTime(invalid_datestr)
+        catch err
+            @test err isa ArgumentError
+            @test occursin(
+                "'$(invalid_datestr)' is improperly formatted.",
+                sprint(showerror, err)
+            )
+        end
+    end
 end

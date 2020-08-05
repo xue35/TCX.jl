@@ -185,7 +185,13 @@ function convertToDateTime(datestr::String)::DateTime
         throw(ArgumentError(msg))
     else
         suffix = replace(m.captures[1], r"\d" => "s")
-        return DateTime(m.match, format_prefix * suffix)
+        try
+            return DateTime(m.match, format_prefix * suffix)
+        catch e
+            if isa(e, ArgumentError) && endswith(suffix, "Z")
+                return DateTime(m.match, format_prefix * (suffix[1:end-1]))
+            end
+        end
     end
 end
 

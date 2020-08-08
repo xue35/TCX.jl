@@ -9,7 +9,7 @@ struct TrackPoint
     Latitude::Float64
     Longtitude::Float64
     HeartRateBpm::Int32
-    AltitueMeter::Float64
+    AltitudeMeter::Float64
     DistanceMeter::Float64
 end
 
@@ -149,8 +149,8 @@ function getDistance2(record::TCXRecord)
     for i in 1:num_of_rows
         if i < num_of_rows
             total_distance += distance(
-                                       LLA(df[i, :Latitude], df[i, :Longtitude], df[i, :AltitueMeter]),
-                                       LLA(df[i+1, :Latitude], df[i+1, :Longtitude], df[i+1, :AltitueMeter])
+                                       LLA(df[i, :Latitude], df[i, :Longtitude], df[i, :AltitudeMeter]),
+                                       LLA(df[i+1, :Latitude], df[i+1, :Longtitude], df[i+1, :AltitudeMeter])
                )
         end
     end

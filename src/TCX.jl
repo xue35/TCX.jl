@@ -76,7 +76,9 @@ end
 
 function parse_tcx_str(str::String)
     try
-        return parse_tcx(EzXML.parsexml(str))
+        status, parsed_tcx = parse_tcx(EzXML.parsexml(str))
+        warn_on_tcx_error(status, str, false)
+        return status, parsed_tcx
     catch e
         if isa(e, EzXML.XMLError)
             @error "Invalid XML string: $str"

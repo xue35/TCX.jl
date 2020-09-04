@@ -1,4 +1,6 @@
-using Test, Dates
+using Test, Dates, Mocking
+
+Mocking.activate()
 
 @testset "TESTSETS: Test conversion of datestring to date time" begin
     the_last_year = DateTime(2020, 1, 1, 0, 0, 0) # Begining of the end
@@ -27,6 +29,20 @@ using Test, Dates
                 "'$(invalid_datestr)' is improperly formatted.",
                 sprint(showerror, err)
             )
+        end
+    end
+
+    @testset "CASE: Test successfully catching and recovering from an argument error" begin
+        datestr = "2020-05-20T21:58:03Z"
+        patch = @patch throw(e) = fn(throw(ArgumentError("I'm being unreasonably difficult")))
+        apply(patch) do
+            datetime = TCX.convertToDateTime(datestr)
+            @test 3 == second(datetime)
+            @test 58 == minute(datetime)
+            @test 21 == hour(datetime)
+            @test 20 == day(datetime)
+            @test 5 == month(datetime)
+            @test 2020 == year(datetime)
         end
     end
 end

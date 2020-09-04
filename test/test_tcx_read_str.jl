@@ -11,4 +11,12 @@ using Test
         err, data = TCX.parse_tcx_str(read(path_to_file, String))
         @test (err == TCX.OK) & (getActivityType(data) == "Running")
     end
+
+    @testset "CASE: Test string is not TCX" begin
+        err, _ = @test_logs(
+            (:warn, "Invalid TCX string: <NotTCX>Oh no! Blorp!</NotTCX>"),
+            TCX.parse_tcx_str("<NotTCX>Oh no! Blorp!</NotTCX>")
+        )
+        @test err == TCX.CLIENT_TCX_ERROR
+    end
 end

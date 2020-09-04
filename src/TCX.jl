@@ -102,11 +102,15 @@ function parse_tcx_file(file::String)
     end
 
     status, parsed_tcx = parse_tcx(xmldoc)
-    if status == CLIENT_TCX_ERROR
-        @warn "Invalid TCX document: $file_path"
-    end
+    warn_on_tcx_error(status, file_path, true)
 
     return status, parsed_tcx
+end
+
+function warn_on_tcx_error(status::Int, thing::String, isFile::Bool)
+    if status == CLIENT_TCX_ERROR
+        @warn "Invalid TCX $(isFile ? document : string): $(thing)"
+    end
 end
 
 #=

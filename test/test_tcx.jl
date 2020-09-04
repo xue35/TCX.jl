@@ -46,3 +46,26 @@ Mocking.activate()
         end
     end
 end
+
+@testset "TESTSETS: Test warn on TCX error" begin
+    @testset "CASE: NOT a TCX error" begin
+        real_tcx = "let's pretend this is a real TCX string"
+        @test_logs TCX.warn_on_tcx_error(TCX.OK, real_tcx, false)
+    end
+
+    @testset "CASE: Is a TCX error on a document" begin
+        path = "path/to/doc"
+        @test_logs(
+            (:warn, "Invalid TCX document: path/to/doc"),
+            TCX.warn_on_tcx_error(TCX.CLIENT_TCX_ERROR, path, true)
+        )
+    end
+
+    @testset "CASE: Is a TCX error on a string" begin
+        string = "<NotTCX>Derp!</NotTCX>"
+        @test_logs(
+            (:warn, "Invalid TCX string: <NotTCX>Derp!</NotTCX>"),
+            TCX.warn_on_tcx_error(TCX.CLIENT_TCX_ERROR, string, false)
+        )
+    end
+end

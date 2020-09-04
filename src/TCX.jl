@@ -1,5 +1,5 @@
 module TCX
-using EzXML, Dates, DataFrames, Geodesy
+using EzXML, Dates, DataFrames, Geodesy, Mocking
 import Base.show
 
 export parse_tcx_dir, parse_tcx_file, getActivityType, getDataFrame, getDistance, getDistance2, getDuration, getAverageSpeed, getAveragePace
@@ -186,9 +186,10 @@ function convertToDateTime(datestr::String)::DateTime
     else
         suffix = replace(m.captures[1], r"\d" => "s")
         try
-            return DateTime(m.match, format_prefix * suffix)
+            return @mock DateTime(m.match, format_prefix * suffix)
         catch e
-            if isa(e, ArgumentError) && endswith(suffix, "Z")
+            if isa(e, ArgumentError)
+                # OK! FINE! NO Z THEN!
                 return DateTime(m.match, format_prefix * (suffix[1:end-1]))
             end
         end

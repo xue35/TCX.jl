@@ -3,21 +3,21 @@ using Test
 @testset "TESTSETS: Test read TCX dir" begin
     @testset "CASE: Test dir with NO TCX file" begin
 	      err, _ =  TCX.parse_tcx_dir(tempdir())
-        @test err == 404
+        @test err == TCX.NOT_FOUND
     end
 
     @testset "CASE: Test dir with TCX file" begin
         err, _ =  TCX.parse_tcx_dir(@__DIR__)
-        @test err == 200
+        @test err == TCX.OK
     end
 
     @testset "CASE: Test relative dir with TCX file" begin
         err, _ =  TCX.parse_tcx_dir(".")
-        @test err == 200
+        @test err == TCX.OK
     end
     @testset "CASE: Test DataFrame after process dir" begin
         err, ta =  TCX.parse_tcx_dir(".")
-        @test (err == 200) & (size(getDataFrame(ta), 1) == 10087)
+        @test (err == TCX.OK) & (size(getDataFrame(ta), 1) == 10087)
     end
 end
 

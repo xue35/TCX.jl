@@ -4,6 +4,12 @@ import Base.show
 
 export parse_tcx_dir, parse_tcx_file, getActivityType, getDataFrame, getDistance, getDistance2, getDuration, getAverageSpeed, getAveragePace
 
+const OK = 200
+const CLIENT_ERROR = 400
+const CLIENT_TCX_ERROR = 401
+const NOT_FOUND = 404
+const SERVER_ERROR = 500
+
 struct TrackPoint
     Time::DateTime
     Latitude::Float64
@@ -23,51 +29,35 @@ struct TCXRecord
     TrackPoints::Array{TrackPoint}
 end
 
-function parse_tcx_file(file::String)
-    file_path = abspath(file)
-    if isfile(file_path) == false
-        return 404, nothing
-    end
-    xmldoc = try readxml(file_path)
-    catch e
-       if isa(e, EzXML.XMLError)
-           # Not a valid XML document
-           @warn "Invalid XML document: $file_path"
-           return 400, nothing
-       else
-           return 500, nothing
-       end
-    end
-
-    root_element = root(xmldoc)
+function parse_tcx(tcxdoc::EzXML.Document)
+    root_element = root(tcxdoc)
     # Check if TCX
     if nodename(root_element) != "TrainingCenterDatabase"
-        @warn "Invalid TCX document: $file_path"
-        return 400, nothing
+        return CLIENT_TCX_ERROR, nothing
     end
 
     # Type - "/*/*[1]/*[1]/@Sport"
-    aType = nodecontent(findfirst("/*/*[1]/*[1]/@Sport", xmldoc))
+    aType = nodecontent(findfirst("/*/*[1]/*[1]/@Sport", tcxdoc))
     # Id - "/*/*[1]/*/*[1]"
-    xid = nodecontent(findfirst("/*/*[1]/*/*[1]", xmldoc))
+    xid = nodecontent(findfirst("/*/*[1]/*/*[1]", tcxdoc))
 
     aId = convertToDateTime(xid)
     # Name = "/*/*[1]/*[1]/*[3]"
-    aName = nodecontent(findfirst("/*/*[1]/*/*[2]", xmldoc))
+    aName = nodecontent(findfirst("/*/*[1]/*/*[2]", tcxdoc))
     # Lap - "/*/*[1]/*/*[2]"
     # TotalSeconds - "/*/*[1]/*/*[2]/*[1]"
-    aTime = parse(Float64, nodecontent(findfirst("/*/*[1]/*/*[2]/*[1]", xmldoc)))
-    aDistance = parse(Float64, nodecontent(findfirst("/*/*[1]/*/*[2]/*[2]", xmldoc)))
+    aTime = parse(Float64, nodecontent(findfirst("/*/*[1]/*/*[2]/*[1]", tcxdoc)))
+    aDistance = parse(Float64, nodecontent(findfirst("/*/*[1]/*/*[2]/*[2]", tcxdoc)))
     # DistanceMeters - "/*/*[1]/*/*[2]/*[2]"
     # AverageHeartRateBpm - "/*/*[1]/*/*[2]/*[5]/*[1]"
-    xbpm = findfirst("/*/*[1]/*/*[2]/*[5]/*[1]", xmldoc)
+    xbpm = findfirst("/*/*[1]/*/*[2]/*[5]/*[1]", tcxdoc)
     if xbpm === nothing
         aHeartRateBpm = 0
     else
         aHeartRateBpm = parse(Int32, nodecontent(xbpm))
     end
     # TrackPoints - "/*/*[1]/*/*[2]/*[9]/*"
-    tp_Points = findall("/*/*[1]/*/*[2]/*[9]/*", xmldoc)
+    tp_Points = findall("/*/*[1]/*/*[2]/*[9]/*", tcxdoc)
     aTrackPoints = Array{TrackPoint, size(tp_Points, 1)}[]
     for tp in tp_Points
         xtime = nodecontent(findfirst("./*[local-name()='Time']", tp))
@@ -81,7 +71,42 @@ function parse_tcx_file(file::String)
         aTrackPoints = vcat(aTrackPoints, TrackPoint(tp_time, tp_lat, tp_lont, tp_bpm, tp_dist, tp_alt))
     end
 
-    return 200, TCXRecord(aId, aName, aType, aDistance, aTime, aHeartRateBpm, aTrackPoints)
+    return OK, TCXRecord(aId, aName, aType, aDistance, aTime, aHeartRateBpm, aTrackPoints)
+end
+
+function parse_tcx_str(str::String)
+    try
+        return parse_tcx(EzXML.parsexml(str))
+    catch e
+        if isa(e, EzXML.XMLError)
+            @error "Invalid XML string: $str"
+            return CLIENT_ERROR, nothing
+        end
+    end
+end
+
+function parse_tcx_file(file::String)
+    file_path = abspath(file)
+    if isfile(file_path) == false
+        return NOT_FOUND, nothing
+    end
+    xmldoc = try readxml(file_path)
+    catch e
+       if isa(e, EzXML.XMLError)
+           # Not a valid XML document
+           @warn "Invalid XML document: $file_path"
+           return CLIENT_ERROR, nothing
+       else
+           return SERVER_ERROR, nothing
+       end
+    end
+
+    status, parsed_tcx = parse_tcx(xmldoc)
+    if status == CLIENT_TCX_ERROR
+        @warn "Invalid TCX document: $file_path"
+    end
+
+    return status, parsed_tcx
 end
 
 #=
@@ -102,7 +127,7 @@ end
 function parse_tcx_dir(path::String)
     if ispath(path) == false
         @warn "Invalid path: $path"
-        return 500, nothing
+        return SERVER_ERROR, nothing
     end
 
     tcxArray = Array{TCXRecord}[]
@@ -110,15 +135,15 @@ function parse_tcx_dir(path::String)
 
     for f in searchdir(path, ".tcx")
         err, tcx = parse_tcx_file(joinpath(path, f))
-        if err == 200
+        if err == OK
             tcxArray = vcat(tcxArray, tcx)
         end
     end
 
     if length(tcxArray) > 0
-        return 200, tcxArray
+        return OK, tcxArray
     else
-        return 404, nothing
+        return NOT_FOUND, nothing
     end
 end
 

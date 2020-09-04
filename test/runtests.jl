@@ -8,5 +8,6 @@ gpx_sample_file="shanghai_marathon_2018.gpx"
 @testset "TCX tests" begin
     include("test_tcx_read_file.jl")
     include("test_tcx_read_dir.jl")
+    include("test_tcx_read_str.jl")
     include("test_tcx.jl")
 end

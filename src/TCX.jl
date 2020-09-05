@@ -92,14 +92,14 @@ function parse_tcx_file(file::String)
     if isfile(file_path) == false
         return NOT_FOUND, nothing
     end
-    xmldoc = try readxml(file_path)
+    xmldoc = try @mock EzXML.readxml(file_path)
     catch e
        if isa(e, EzXML.XMLError)
            # Not a valid XML document
            @warn "Invalid XML document: $file_path"
            return CLIENT_ERROR, nothing
        else
-           return SERVER_ERROR, nothing
+           throw(e)
        end
     end
 

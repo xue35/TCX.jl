@@ -1,4 +1,6 @@
-using Test
+using Test, Mocking, EzXML
+
+Mocking.activate()
 
 gpx_sample_file2=joinpath(@__DIR__, gpx_sample_file)
 tcx_sample_file2=joinpath(@__DIR__, tcx_sample_file)
@@ -54,6 +56,13 @@ tcx_treadmill_run_file2=joinpath(@__DIR__, tcx_treadmill_run_file)
     @testset "CASE: Test to get TCX duration." begin
         err, data =  TCX.parse_tcx_file(tcx_centrypark_run_file2)
         @test (err == TCX.OK) & (getDuration(data) > 0 )
+    end
+
+    @testset "CASE: Test throws error on unexpected condition" begin
+        patch = @patch EzXML.readxml(path::String) = fn(throw(ReadOnlyMemoryError()))
+        apply(patch) do
+            @test_throws ReadOnlyMemoryError TCX.parse_tcx_file(tcx_centrypark_run_file2)
+        end
     end
 end
 

@@ -45,6 +45,15 @@ Mocking.activate()
             @test 2020 == year(datetime)
         end
     end
+
+    @testset "CASE: Test that an unexpected error is not silenced" begin
+        datestr = "2020-05-20T21:58:03Z"
+        yet_another_error = ErrorException("Oh boy now something else is wrong!")
+        patch = @patch throw(e) = fn(throw(yet_another_error))
+        apply(patch) do
+            @test_throws ErrorException TCX.convertToDateTime(datestr)
+        end
+    end
 end
 
 @testset "TESTSETS: Test warn on TCX error" begin

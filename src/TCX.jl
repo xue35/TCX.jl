@@ -221,7 +221,9 @@ function convertToDateTime(datestr::String)::DateTime
         catch e
             if isa(e, ArgumentError)
                 # OK! FINE! NO Z THEN!
-                return DateTime(m.match, format_prefix * (suffix[1:end-1]))
+                return DateTime(m.match[1:end-1], format_prefix * (suffix[1:end-1]))
+            else
+                throw(e)
             end
         end
     end

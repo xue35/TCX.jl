@@ -56,7 +56,7 @@ end
     @testset "CASE: Is a TCX error on a document" begin
         path = "path/to/doc"
         @test_logs(
-            (:warn, "Invalid TCX document: path/to/doc"),
+            (:warn, r"Invalid TCX.+document:"),
             TCX.warn_on_tcx_error(TCX.CLIENT_TCX_ERROR, path, true)
         )
     end
